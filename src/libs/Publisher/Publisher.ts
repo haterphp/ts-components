@@ -1,27 +1,25 @@
 import defineEvent, { type EventObserver, type Event} from "../Event/Event.ts";
 
-type PublisherObserverKey = string
-
-export interface Publisher<TPayload = unknown> {
+export interface Publisher<TPayload = unknown, TKeys extends string = string> {
     /**
      * Getters
      */
-    observers: Map<PublisherObserverKey, Event<TPayload>>
+    observers: Map<TKeys, Event<TPayload>>
 
     /**
      * Methods
      */
-    on(key: PublisherObserverKey, observer: EventObserver<TPayload>): void
-    off(key: PublisherObserverKey, observer: EventObserver<TPayload>): void
-    emit(key: PublisherObserverKey, payload: TPayload): void
+    on(key: TKeys, observer: EventObserver<TPayload>): void
+    off(key: TKeys, observer: EventObserver<TPayload>): void
+    emit(key: TKeys, payload: TPayload): void
 }
 
-export function definePublisher<TPayload = unknown>(): Publisher<TPayload> {
-    const observers = new Map<PublisherObserverKey, Event<TPayload>>()
+export function definePublisher<TPayload = unknown, TKeys extends string = string>(): Publisher<TPayload, TKeys> {
+    const observers = new Map<TKeys, Event<TPayload>>()
 
     // =========================
 
-    function on(key: PublisherObserverKey, observer: EventObserver<TPayload>): void {
+    function on(key: TKeys, observer: EventObserver<TPayload>): void {
         let existedEvent = observers.get(key)
         if (existedEvent === undefined) {
             existedEvent = defineEvent<TPayload>()
@@ -30,7 +28,7 @@ export function definePublisher<TPayload = unknown>(): Publisher<TPayload> {
         existedEvent.on(observer)
     }
 
-    function off(key: PublisherObserverKey, observer: EventObserver<TPayload>): void {
+    function off(key: TKeys, observer: EventObserver<TPayload>): void {
         const existedObservers = observers.get(key)
         if (existedObservers === undefined) {
             throw new Error(`Observers list for key=$key{} not found`)
@@ -38,7 +36,7 @@ export function definePublisher<TPayload = unknown>(): Publisher<TPayload> {
         existedObservers.off(observer)
     }
 
-    function emit(key: PublisherObserverKey, payload: TPayload): void {
+    function emit(key: TKeys, payload: TPayload): void {
         const existedObservers = observers.get(key)
         if (existedObservers === undefined) {
             throw new Error(`Any observers not found for key=${key}`)
